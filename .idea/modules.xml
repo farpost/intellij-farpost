@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/intellij-logwatcher.iml" filepath="$PROJECT_DIR$/intellij-logwatcher.iml" />
+      <module fileurl="file://$PROJECT_DIR$/intellij-farpost.iml" filepath="$PROJECT_DIR$/intellij-farpost.iml" />
     </modules>
   </component>
 </project>

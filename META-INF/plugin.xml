@@ -1,6 +1,6 @@
 <idea-plugin version="2">
-  <id>com.farpost.logwatcher.intellij</id>
-  <name>LogWatcher</name>
+  <id>com.farpost.intellij</id>
+  <name>FarPost</name>
   <version>1.0</version>
   <vendor email="support@farpost.com" url="http://farpost.com">FarPost</vendor>
 
@@ -35,5 +35,8 @@
   <actions>
     <!-- Add your actions here -->
   </actions>
-
+  
+  <extensions defaultExtensionNs="com.intellij">
+    <errorHandler implementation="com.farpost.intellij.ErrorReporter"/>
+  </extensions>
 </idea-plugin>
