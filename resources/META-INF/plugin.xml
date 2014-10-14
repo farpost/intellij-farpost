@@ -21,6 +21,8 @@
   <depends optional="true" config-file="php-specific.xml">com.jetbrains.php</depends>
 
   <extensions defaultExtensionNs="com.intellij">
+    <toolWindow id="LogWatcher" icon="/com/farpost/intellij/icons/toolWindowLogWatcher.png" canCloseContents="true"
+                factoryClass="com.farpost.intellij.logwatcher.LogWatcherToolWindowFactory" anchor="bottom"/>
     <errorHandler implementation="com.farpost.intellij.ErrorReporter"/>
   </extensions>
 

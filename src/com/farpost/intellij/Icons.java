@@ -10,4 +10,5 @@ public class Icons {
   }
 
   public static final Icon LogWatcher = load("/com/farpost/intellij/icons/logwatcher.png");
+  public static final Icon ToolWindowLogWatcher = load("/com/farpost/intellij/icons/toolWindowLogWatcher.png"); // 13x13
 }
