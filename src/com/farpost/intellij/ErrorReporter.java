@@ -1,5 +1,6 @@
 package com.farpost.intellij;
 
+import com.intellij.diagnostic.ITNReporter;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
 import com.intellij.openapi.diagnostic.SubmittedReportInfo;
@@ -8,14 +9,18 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-public class ErrorReporter extends ErrorReportSubmitter {
+public class ErrorReporter extends ITNReporter {
   @Override
-  public boolean submit(@NotNull IdeaLoggingEvent[] events,
-                        String additionalInfo,
-                        @NotNull Component parentComponent,
-                        @NotNull Consumer<SubmittedReportInfo> consumer) {
-    // todo implement reporter
-    return super.submit(events, additionalInfo, parentComponent, consumer);
+  public SubmittedReportInfo submit(IdeaLoggingEvent[] events, Component parentComponent) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean trySubmitAsync(IdeaLoggingEvent[] events,
+                                String additionalInfo,
+                                Component parentComponent,
+                                Consumer<SubmittedReportInfo> consumer) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
