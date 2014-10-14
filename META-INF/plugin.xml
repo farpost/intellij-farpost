@@ -14,14 +14,14 @@
   <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Build+Number+Ranges for description -->
   <idea-version since-build="135"/>
 
-  <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
-       on how to target different products -->
-  <!-- uncomment to enable plugin in all products
   <depends>com.intellij.modules.lang</depends>
-  -->
+
+  <depends optional="true" config-file="java-specific.xml">com.intellij.modules.java</depends>
+  <!--suppress PluginXmlValidity -->
+  <depends optional="true" config-file="php-specific.xml">com.jetbrains.php</depends>
 
   <extensions defaultExtensionNs="com.intellij">
-    <!-- Add your extensions here -->
+    <errorHandler implementation="com.farpost.intellij.ErrorReporter"/>
   </extensions>
 
   <application-components>
@@ -35,8 +35,4 @@
   <actions>
     <!-- Add your actions here -->
   </actions>
-  
-  <extensions defaultExtensionNs="com.intellij">
-    <errorHandler implementation="com.farpost.intellij.ErrorReporter"/>
-  </extensions>
 </idea-plugin>
