@@ -27,6 +27,7 @@
   <!-- LogWatcher -->
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.farpost.intellij.logwatcher.settings.LogWatcherSettings"/>
+    <projectConfigurable instance="com.farpost.intellij.logwatcher.settings.LogWatcherConfigurable"/>
     <toolWindow id="LogWatcher" icon="/com/farpost/intellij/icons/toolWindowLogWatcher.png" canCloseContents="true"
                 factoryClass="com.farpost.intellij.logwatcher.LogWatcherToolWindowFactory" anchor="bottom"/>
   </extensions>

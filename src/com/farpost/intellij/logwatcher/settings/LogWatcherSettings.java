@@ -10,11 +10,12 @@ import org.jetbrains.annotations.Nullable;
 public class LogWatcherSettings implements PersistentStateComponent<LogWatcherSettings> {
   private String url = "";
 
+  @NotNull
   public String getUrl() {
     return url;
   }
 
-  public void setUrl(String url) {
+  public void setUrl(@NotNull String url) {
     this.url = url;
   }
 
