@@ -10,31 +10,24 @@
   <change-notes><![CDATA[
     ]]>
   </change-notes>
-
-  <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Build+Number+Ranges for description -->
+  
   <idea-version since-build="135"/>
 
   <depends>com.intellij.modules.lang</depends>
 
-  <depends optional="true" config-file="java-specific.xml">com.intellij.modules.java</depends>
   <!--suppress PluginXmlValidity -->
   <depends optional="true" config-file="php-specific.xml">com.jetbrains.php</depends>
+  <depends optional="true" config-file="java-specific.xml">com.intellij.modules.java</depends>
 
+  <!-- Common -->
   <extensions defaultExtensionNs="com.intellij">
-    <toolWindow id="LogWatcher" icon="/com/farpost/intellij/icons/toolWindowLogWatcher.png" canCloseContents="true"
-                factoryClass="com.farpost.intellij.logwatcher.LogWatcherToolWindowFactory" anchor="bottom"/>
     <errorHandler implementation="com.farpost.intellij.ErrorReporter"/>
   </extensions>
-
-  <application-components>
-    <!-- Add your application components here -->
-  </application-components>
-
-  <project-components>
-    <!-- Add your project components here -->
-  </project-components>
-
-  <actions>
-    <!-- Add your actions here -->
-  </actions>
+  
+  <!-- LogWatcher -->
+  <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceImplementation="com.farpost.intellij.logwatcher.settings.LogWatcherSettings"/>
+    <toolWindow id="LogWatcher" icon="/com/farpost/intellij/icons/toolWindowLogWatcher.png" canCloseContents="true"
+                factoryClass="com.farpost.intellij.logwatcher.LogWatcherToolWindowFactory" anchor="bottom"/>
+  </extensions>
 </idea-plugin>
