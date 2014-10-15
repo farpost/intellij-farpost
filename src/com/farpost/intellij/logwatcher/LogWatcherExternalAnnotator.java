@@ -1,5 +1,6 @@
 package com.farpost.intellij.logwatcher;
 
+import com.farpost.intellij.logwatcher.settings.LogWatcherSettings;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
@@ -9,6 +10,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.tools.SimpleActionGroup;
 import com.intellij.ui.awt.RelativePoint;
@@ -18,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -28,41 +31,45 @@ import static com.intellij.util.containers.ContainerUtil.createMaybeSingletonLis
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.Arrays.asList;
 
-public class LogWatcherExternalAnnotator extends ExternalAnnotator<Object, Object> {
+public class LogWatcherExternalAnnotator extends ExternalAnnotator<List<ProblemOccurence>, List<ProblemOccurence>> {
 
   @Nullable
   @Override
-  public Object collectInformation(@NotNull PsiFile file) {
-    return super.collectInformation(file);
+  public List<ProblemOccurence> collectInformation(@NotNull PsiFile file) {
+    return null;
   }
 
   @Nullable
   @Override
-  public Object collectInformation(@NotNull PsiFile file, @NotNull Editor editor, boolean hasErrors) {
-    return 1;
-  }
+  public List<ProblemOccurence> collectInformation(@NotNull PsiFile file, @NotNull final Editor editor, boolean hasErrors) {
+    final String hostName = LogWatcherSettings.getInstance(file.getProject()).getUrl();
 
-  @Nullable
-  @Override
-  public Object doAnnotate(Object collectedInfo) {
-    return 1;
-  }
+    final List<ProblemOccurence> result = new ArrayList<ProblemOccurence>();
 
-  @Override
-  public void apply(@NotNull PsiFile file, Object annotationResult, @NotNull final AnnotationHolder holder) {
     final String cl = "com.farpost.search.web.RestControllerV13";
     final String m = "searchDocuments";
-    String location = "PerformSearchCallable.java:36";
+    final int lineNumber = 1;
     PsiElementVisitor v = new JavaRecursiveElementWalkingVisitor() {
       @Override
       public void visitClass(PsiClass aClass) {
         if (cl.equalsIgnoreCase(aClass.getQualifiedName())) {
           PsiMethod[] candidates = aClass.findMethodsByName(m, false);
           for (PsiMethod candidate : candidates) {
-            PsiIdentifier nameIdentifier = candidate.getNameIdentifier();
-            if (nameIdentifier != null) {
-              Annotation a = holder.createInfoAnnotation(nameIdentifier, null);
-              a.setGutterIconRenderer(new MyGutterIconRenderer(cl, m, asList("http://logwatcher.srv.loc/", "http://logwatcher2.srv.loc/")));
+            int lineStartOffset = editor.getDocument().getLineStartOffset(lineNumber - 1);
+            int lineEndOffset = editor.getDocument().getLineEndOffset(lineNumber);
+            PsiCodeBlock body = candidate.getBody();
+
+            List<String> urls = asList("http://" + hostName + "/entries/search/0f346881b0b1752a000b459252242265", "http://" +
+                                                                                                                  hostName +
+                                                                                                                  "/entries/search/608f0fea4b024d08a4fa3ea4dec59d39");
+            if (body != null && body.getTextRange().contains(lineStartOffset)) {
+              result.add(new ProblemOccurence(TextRange.create(lineStartOffset, lineStartOffset), urls));
+            }
+            else {
+              PsiIdentifier nameIdentifier = candidate.getNameIdentifier();
+              if (nameIdentifier != null) {
+                result.add(new ProblemOccurence(nameIdentifier.getTextRange(), urls));
+              }
             }
           }
         }
@@ -70,18 +77,28 @@ public class LogWatcherExternalAnnotator extends ExternalAnnotator<Object, Objec
     };
 
     file.accept(v);
+    return result;
+  }
+
+  @Nullable
+  @Override
+  public List<ProblemOccurence> doAnnotate(List<ProblemOccurence> url) {
+    return url;
+  }
+
+  @Override
+  public void apply(@NotNull PsiFile file, final List<ProblemOccurence> problems, @NotNull final AnnotationHolder holder) {
+    for (ProblemOccurence problem : problems) {
+      Annotation a = holder.createInfoAnnotation(problem.getTextRange(), null);
+      a.setGutterIconRenderer(new MyGutterIconRenderer(problem.getUrls()));
+    }
   }
 
   final static class MyGutterIconRenderer extends GutterIconRenderer {
 
-
-    private final String myCl;
-    private final String myM;
     private final List<String> myUrls;
 
-    public MyGutterIconRenderer(String cl, String m, List<String> urls) {
-      myCl = cl;
-      myM = m;
+    public MyGutterIconRenderer(List<String> urls) {
       myUrls = urls;
     }
 
@@ -121,17 +138,14 @@ public class LogWatcherExternalAnnotator extends ExternalAnnotator<Object, Objec
 
       MyGutterIconRenderer that = (MyGutterIconRenderer)o;
 
-      if (!myCl.equals(that.myCl)) return false;
-      if (!myM.equals(that.myM)) return false;
+      if (!myUrls.equals(that.myUrls)) return false;
 
       return true;
     }
 
     @Override
     public int hashCode() {
-      int result = myCl.hashCode();
-      result = 31 * result + myM.hashCode();
-      return result;
+      return myUrls.hashCode();
     }
   }
 
