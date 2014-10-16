@@ -35,6 +35,12 @@ public class LogWatcherProjectComponent extends AbstractProjectComponent {
     scheduleUpdate(0);
   }
 
+  @Override
+  public void disposeComponent() {
+    myAlarm.cancelAllRequests();
+    myData.clear();
+  }
+
   private void scheduleUpdate() {
     scheduleUpdate(mySettings.getUpdateRateMillis());
   }
