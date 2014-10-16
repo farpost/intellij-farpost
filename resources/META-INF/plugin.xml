@@ -25,6 +25,11 @@
   </extensions>
   
   <!-- LogWatcher -->
+  <project-components>
+    <component>
+      <implementation-class>com.farpost.intellij.logwatcher.LogWatcherProjectComponent</implementation-class>
+    </component>
+  </project-components>
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.farpost.intellij.logwatcher.settings.LogWatcherSettings"/>
     <projectConfigurable instance="com.farpost.intellij.logwatcher.settings.LogWatcherConfigurable"/>

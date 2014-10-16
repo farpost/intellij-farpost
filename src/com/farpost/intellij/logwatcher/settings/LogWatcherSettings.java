@@ -6,9 +6,12 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.TimeUnit;
+
 @State(name = "LogWatcher", storages = {@Storage(file = StoragePathMacros.PROJECT_CONFIG_DIR + "/logwatcher.xml")})
 public class LogWatcherSettings implements PersistentStateComponent<LogWatcherSettings> {
   private String url = "";
+  private long myUpdateRateMillis = TimeUnit.SECONDS.toMillis(30);
 
   @NotNull
   public String getUrl() {
@@ -17,6 +20,14 @@ public class LogWatcherSettings implements PersistentStateComponent<LogWatcherSe
 
   public void setUrl(@NotNull String url) {
     this.url = url;
+  }
+
+  public void setUpdateRateMillis(long updateRateMillis) {
+    myUpdateRateMillis = updateRateMillis;
+  }
+
+  public long getUpdateRateMillis() {
+    return myUpdateRateMillis;
   }
 
   public static LogWatcherSettings getInstance(@NotNull Project project) {

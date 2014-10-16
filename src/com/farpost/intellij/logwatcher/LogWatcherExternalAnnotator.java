@@ -15,21 +15,22 @@ import com.intellij.psi.*;
 import com.intellij.tools.SimpleActionGroup;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.NotNullFunction;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.farpost.intellij.Icons.LogWatcher;
 import static com.intellij.openapi.ui.popup.JBPopupFactory.ActionSelectionAid.NUMBERING;
 import static com.intellij.openapi.ui.popup.JBPopupFactory.getInstance;
 import static com.intellij.util.containers.ContainerUtil.createMaybeSingletonList;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static java.util.Arrays.asList;
 
 public class LogWatcherExternalAnnotator extends ExternalAnnotator<List<ProblemOccurence>, List<ProblemOccurence>> {
 
@@ -44,31 +45,35 @@ public class LogWatcherExternalAnnotator extends ExternalAnnotator<List<ProblemO
   public List<ProblemOccurence> collectInformation(@NotNull PsiFile file, @NotNull final Editor editor, boolean hasErrors) {
     final String hostName = LogWatcherSettings.getInstance(file.getProject()).getUrl();
 
-    final List<ProblemOccurence> result = new ArrayList<ProblemOccurence>();
+    final Map<Integer, ProblemOccurence> result = new HashMap<Integer, ProblemOccurence>();
 
-    final String cl = "com.farpost.search.web.RestControllerV13";
-    final String m = "searchDocuments";
-    final int lineNumber = 1;
+    final LogWatcherProjectComponent logWatcherProjectComponent = file.getProject().getComponent(LogWatcherProjectComponent.class);
+    if (logWatcherProjectComponent == null) {
+      return null;
+    }
+
     PsiElementVisitor v = new JavaRecursiveElementWalkingVisitor() {
       @Override
       public void visitClass(PsiClass aClass) {
-        if (cl.equalsIgnoreCase(aClass.getQualifiedName())) {
-          PsiMethod[] candidates = aClass.findMethodsByName(m, false);
-          for (PsiMethod candidate : candidates) {
-            int lineStartOffset = editor.getDocument().getLineStartOffset(lineNumber - 1);
-            int lineEndOffset = editor.getDocument().getLineEndOffset(lineNumber);
-            PsiCodeBlock body = candidate.getBody();
+        final String qualifiedName = aClass.getQualifiedName();
 
-            List<String> urls = asList("http://" + hostName + "/entries/search/0f346881b0b1752a000b459252242265", "http://" +
-                                                                                                                  hostName +
-                                                                                                                  "/entries/search/608f0fea4b024d08a4fa3ea4dec59d39");
+        final Collection<LogEntryDescriptor> logDescriptors = logWatcherProjectComponent.getDescriptorsForClass(qualifiedName);
+        for (LogEntryDescriptor logDescriptor : logDescriptors) {
+          PsiMethod[] candidates = aClass.findMethodsByName(logDescriptor.methodName, false);
+          for (PsiMethod candidate : candidates) {
+            int lineStartOffset = editor.getDocument().getLineStartOffset(logDescriptor.lineNumber - 1);
+
+            PsiCodeBlock body = candidate.getBody();
+            final String logUrl = "http://" + hostName + "/" + logDescriptor.logUrl;
             if (body != null && body.getTextRange().contains(lineStartOffset)) {
-              result.add(new ProblemOccurence(TextRange.create(lineStartOffset, lineStartOffset), urls));
+              putOrAppendUrl(result, logDescriptor.lineNumber - 1, logUrl, TextRange.create(lineStartOffset, lineStartOffset));
             }
             else {
               PsiIdentifier nameIdentifier = candidate.getNameIdentifier();
               if (nameIdentifier != null) {
-                result.add(new ProblemOccurence(nameIdentifier.getTextRange(), urls));
+                final TextRange nameIdentifierTextRange = nameIdentifier.getTextRange();
+                final int lineNumber = editor.getDocument().getLineNumber(nameIdentifierTextRange.getStartOffset());
+                putOrAppendUrl(result, lineNumber, logUrl, nameIdentifierTextRange);
               }
             }
           }
@@ -77,7 +82,17 @@ public class LogWatcherExternalAnnotator extends ExternalAnnotator<List<ProblemO
     };
 
     file.accept(v);
-    return result;
+    return ContainerUtil.newArrayList(result.values());
+  }
+
+  private static void putOrAppendUrl(Map<Integer, ProblemOccurence> result, int lineNumber, String url, TextRange textRange) {
+    final ProblemOccurence existingOccurence = result.get(lineNumber);
+    if (existingOccurence != null) {
+      existingOccurence.getUrls().add(url);
+    }
+    else {
+      result.put(lineNumber, new ProblemOccurence(textRange, ContainerUtil.newArrayList(url)));
+    }
   }
 
   @Nullable
