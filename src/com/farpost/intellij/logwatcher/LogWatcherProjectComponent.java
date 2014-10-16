@@ -25,6 +25,10 @@ public class LogWatcherProjectComponent extends AbstractProjectComponent {
     mySettings = settings;
     myAlarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, project);
   }
+  
+  public static LogWatcherProjectComponent getInstance(@NotNull Project project) {
+    return project.getComponent(LogWatcherProjectComponent.class);
+  }
 
   public Collection<LogEntryDescriptor> getDescriptorsForClass(String fqn) {
     return myData.get(fqn);
@@ -41,11 +45,11 @@ public class LogWatcherProjectComponent extends AbstractProjectComponent {
     myData.clear();
   }
 
-  private void scheduleUpdate() {
+  public void scheduleUpdate() {
     scheduleUpdate(mySettings.getUpdateRateMillis());
   }
 
-  private void scheduleUpdate(long delayMillis) {
+  public void scheduleUpdate(long delayMillis) {
     myAlarm.addRequest(new MyUpdateRequest(), delayMillis);
   }
 

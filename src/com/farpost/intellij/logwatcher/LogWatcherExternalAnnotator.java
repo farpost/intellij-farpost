@@ -1,6 +1,5 @@
 package com.farpost.intellij.logwatcher;
 
-import com.farpost.intellij.logwatcher.settings.LogWatcherSettings;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
@@ -12,7 +11,6 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
-import com.intellij.tools.SimpleActionGroup;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +28,7 @@ import static com.intellij.openapi.ui.popup.JBPopupFactory.ActionSelectionAid.NU
 import static com.intellij.openapi.ui.popup.JBPopupFactory.getInstance;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
+// todo since retrieving log data is fast now it should be reimplemented with Annotator or LineMarkerProvider
 public class LogWatcherExternalAnnotator extends ExternalAnnotator<List<ProblemOccurence>, List<ProblemOccurence>> {
 
   @Nullable
@@ -41,11 +40,9 @@ public class LogWatcherExternalAnnotator extends ExternalAnnotator<List<ProblemO
   @Nullable
   @Override
   public List<ProblemOccurence> collectInformation(@NotNull PsiFile file, @NotNull final Editor editor, boolean hasErrors) {
-    final String hostName = LogWatcherSettings.getInstance(file.getProject()).getUrl();
-
     final Map<Integer, ProblemOccurence> result = new HashMap<Integer, ProblemOccurence>();
 
-    final LogWatcherProjectComponent logWatcherProjectComponent = file.getProject().getComponent(LogWatcherProjectComponent.class);
+    final LogWatcherProjectComponent logWatcherProjectComponent = LogWatcherProjectComponent.getInstance(file.getProject());
     if (logWatcherProjectComponent == null) {
       return null;
     }

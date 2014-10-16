@@ -1,33 +1,28 @@
 package com.farpost.intellij.logwatcher.settings;
 
-import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
-import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
-import com.intellij.codeInsight.daemon.impl.HighlightInfo;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.TextEditor;
-import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
+import com.farpost.intellij.logwatcher.LogWatcherProjectComponent;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBTextField;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 public class LogWatcherConfigurable implements SearchableConfigurable {
   @NotNull private final Project myProject;
   @NotNull private final LogWatcherSettings mySettings;
   private JPanel myPanel;
   private JBTextField myHostField;
+  private JSpinner myUpdateRateSpinner;
 
   public LogWatcherConfigurable(@NotNull Project project, @NotNull LogWatcherSettings settings) {
     myProject = project;
     mySettings = settings;
+    myUpdateRateSpinner.setModel(new SpinnerNumberModel(1, 1, 60, 1));
   }
 
   @Nullable
@@ -38,20 +33,22 @@ public class LogWatcherConfigurable implements SearchableConfigurable {
 
   @Override
   public boolean isModified() {
-    return !mySettings.getUrl().equals(myHostField.getText());
+    return !mySettings.getUrl().equals(myHostField.getText()) ||
+           TimeUnit.MILLISECONDS.toMinutes(mySettings.getUpdateRateMillis()) != myUpdateRateSpinner.getValue();
   }
 
   @Override
   public void apply() throws ConfigurationException {
     mySettings.setUrl(myHostField.getText());
-    
-    DaemonCodeAnalyzerImpl codeAnalyzer = (DaemonCodeAnalyzerImpl)DaemonCodeAnalyzer.getInstance(myProject);
-    codeAnalyzer.restart();
+    mySettings.setUpdateRateMillis(TimeUnit.MINUTES.toMillis((Integer)myUpdateRateSpinner.getValue()));
+
+    LogWatcherProjectComponent.getInstance(myProject).scheduleUpdate(0);
   }
 
   @Override
   public void reset() {
     myHostField.setText(mySettings.getUrl());
+    myUpdateRateSpinner.setValue(Math.max(1, TimeUnit.MILLISECONDS.toMinutes(mySettings.getUpdateRateMillis())));
   }
 
   @Override
