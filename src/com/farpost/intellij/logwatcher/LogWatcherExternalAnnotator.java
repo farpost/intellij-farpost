@@ -5,16 +5,15 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
-import com.intellij.navigation.GotoRelatedItem;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.tools.SimpleActionGroup;
 import com.intellij.ui.awt.RelativePoint;
-import com.intellij.util.NotNullFunction;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +28,6 @@ import java.util.Map;
 import static com.farpost.intellij.Icons.LogWatcher;
 import static com.intellij.openapi.ui.popup.JBPopupFactory.ActionSelectionAid.NUMBERING;
 import static com.intellij.openapi.ui.popup.JBPopupFactory.getInstance;
-import static com.intellij.util.containers.ContainerUtil.createMaybeSingletonList;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public class LogWatcherExternalAnnotator extends ExternalAnnotator<List<ProblemOccurence>, List<ProblemOccurence>> {
@@ -132,13 +130,13 @@ public class LogWatcherExternalAnnotator extends ExternalAnnotator<List<ProblemO
       return new AnAction() {
         @Override
         public void actionPerformed(AnActionEvent e) {
-          SimpleActionGroup g = new SimpleActionGroup();
+          DefaultActionGroup g = new DefaultActionGroup();
           for (String url : myUrls) {
             g.add(new GotoUrlAction(url));
           }
           if (e.getInputEvent() instanceof MouseEvent) {
             MouseEvent me = (MouseEvent)e.getInputEvent();
-            getInstance().createActionGroupPopup("LogWatcher", g, e.getDataContext(), NUMBERING, true, null, 10)
+            getInstance().createActionGroupPopup(null, g, e.getDataContext(), NUMBERING, true, null, 10)
               .show(new RelativePoint(me));
           }
 
@@ -182,41 +180,4 @@ public class LogWatcherExternalAnnotator extends ExternalAnnotator<List<ProblemO
     }
   }
 
-  private static class ToListConverted implements NotNullFunction<String, Collection<? extends PsiElement>> {
-
-    private final PsiElement element;
-
-    public ToListConverted(PsiElement element) {
-      this.element = element;
-    }
-
-    @NotNull
-    @Override
-    public Collection<? extends PsiElement> fun(String dom) {
-      return createMaybeSingletonList(element);
-    }
-  }
-
-  private static class MyItemProvider implements NotNullFunction<String, Collection<? extends GotoRelatedItem>> {
-
-    private final PsiElement myPsiElement;
-    private final String url;
-
-    public MyItemProvider(PsiElement psiElement, String url) {
-      myPsiElement = psiElement;
-      this.url = url;
-    }
-
-    @NotNull
-    @Override
-    public Collection<? extends GotoRelatedItem> fun(String dom) {
-      GotoRelatedItem item = new GotoRelatedItem(myPsiElement, "LogWatcher") {
-        @Override
-        public void navigate() {
-          System.out.println("Going to: " + url);
-        }
-      };
-      return createMaybeSingletonList(item);
-    }
-  }
 }
