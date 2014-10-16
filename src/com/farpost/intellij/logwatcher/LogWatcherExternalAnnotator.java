@@ -62,16 +62,15 @@ public class LogWatcherExternalAnnotator extends ExternalAnnotator<List<ProblemO
             int lineStartOffset = editor.getDocument().getLineStartOffset(logDescriptor.lineNumber - 1);
 
             PsiCodeBlock body = candidate.getBody();
-            final String logUrl = "http://" + hostName + "/" + logDescriptor.logUrl;
             if (body != null && body.getTextRange().contains(lineStartOffset)) {
-              putOrAppendUrl(result, logDescriptor.lineNumber - 1, logUrl, TextRange.create(lineStartOffset, lineStartOffset));
+              putOrAppendUrl(result, logDescriptor.lineNumber - 1, logDescriptor.logUrl, TextRange.create(lineStartOffset, lineStartOffset));
             }
             else {
               PsiIdentifier nameIdentifier = candidate.getNameIdentifier();
               if (nameIdentifier != null) {
                 final TextRange nameIdentifierTextRange = nameIdentifier.getTextRange();
                 final int lineNumber = editor.getDocument().getLineNumber(nameIdentifierTextRange.getStartOffset());
-                putOrAppendUrl(result, lineNumber, logUrl, nameIdentifierTextRange);
+                putOrAppendUrl(result, lineNumber, logDescriptor.logUrl, nameIdentifierTextRange);
               }
             }
           }

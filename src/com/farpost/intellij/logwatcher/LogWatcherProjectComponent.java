@@ -57,9 +57,10 @@ public class LogWatcherProjectComponent extends AbstractProjectComponent {
       final String m = "main";
       final int lineNumber = 7;
       myData.clear();
-      myData.putValue(cl, new LogEntryDescriptor(cl, m, lineNumber, "/entries/search/0f346881b0b1752a000b459252242265?updatedTime=" +
+      String hostName = mySettings.getUrl();
+      myData.putValue(cl, new LogEntryDescriptor(cl, m, lineNumber, "http://" + hostName + "/entries/search/0f346881b0b1752a000b459252242265?updatedTime=" +
                                                                     DateFormatUtil.formatTime(new Date())));
-      myData.putValue(cl, new LogEntryDescriptor(cl, m, lineNumber, "/entries/search/608f0fea4b024d08a4fa3ea4dec59d39?updatedTime=" +
+      myData.putValue(cl, new LogEntryDescriptor(cl, m, lineNumber, "http://" + hostName + "/entries/search/608f0fea4b024d08a4fa3ea4dec59d39?updatedTime=" +
                                                                     DateFormatUtil.formatTime(new Date())));
 
       DaemonCodeAnalyzer.getInstance(myProject).restart();
