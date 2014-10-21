@@ -1,3 +1,3 @@
 <plugins>
-  <plugin id="com.farpost.intellij" url="archive/intellij-farpost.jar" version="0.1"/>
+  <plugin id="com.farpost.intellij" url="releases/download/1.0/intellij-farpost.jar" version="1.0"/>
 </plugins>
