@@ -40,7 +40,7 @@ public class LogWatcherConfigurable implements SearchableConfigurable {
   @Override
   public void apply() throws ConfigurationException {
     mySettings.setUrl(myHostField.getText());
-    mySettings.setUpdateRateMillis(TimeUnit.MINUTES.toMillis((Integer)myUpdateRateSpinner.getValue()));
+    mySettings.setUpdateRateMillis(TimeUnit.MINUTES.toMillis(((Number)myUpdateRateSpinner.getValue()).longValue()));
 
     LogWatcherProjectComponent.getInstance(myProject).scheduleUpdate(0);
   }
