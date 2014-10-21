@@ -68,18 +68,23 @@ public class LogWatcherProjectComponent extends AbstractProjectComponent {
       try {
         InputStream is = URLUtil.openStream(new URL(url));
 
-        Gson gson = new GsonBuilder().create();
-        JsonArray obj = gson.fromJson(new InputStreamReader(is), JsonArray.class);
-        for (JsonElement element : obj) {
-          JsonObject o = (JsonObject)element;
-          int line = o.getAsJsonPrimitive("line").getAsInt();
-          String cluster = o.getAsJsonPrimitive("cluster").getAsString();
-          String clazz = o.getAsJsonPrimitive("class").getAsString();
-          @SuppressWarnings("UnusedDeclaration")
-          String file = o.getAsJsonPrimitive("file").getAsString();
-          String method = o.getAsJsonPrimitive("method").getAsString();
+        try {
+          Gson gson = new GsonBuilder().create();
+          JsonArray obj = gson.fromJson(new InputStreamReader(is), JsonArray.class);
+          for (JsonElement element : obj) {
+            JsonObject o = (JsonObject)element;
+            int line = o.getAsJsonPrimitive("line").getAsInt();
+            String cluster = o.getAsJsonPrimitive("cluster").getAsString();
+            String clazz = o.getAsJsonPrimitive("class").getAsString();
+            @SuppressWarnings("UnusedDeclaration")
+            String file = o.getAsJsonPrimitive("file").getAsString();
+            String method = o.getAsJsonPrimitive("method").getAsString();
 
-          myData.putValue(clazz, new LogEntryDescriptor(clazz, method, line, urlPrefix + "/entries/search/" + cluster));
+            myData.putValue(clazz, new LogEntryDescriptor(clazz, method, line, urlPrefix + "/entries/search/" + cluster));
+          }
+        }
+        finally {
+          is.close();
         }
       }
       catch (IOException e) {

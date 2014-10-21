@@ -3,12 +3,13 @@ package com.farpost.intellij.logwatcher;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
-import com.intellij.lang.annotation.ExternalAnnotator;
+import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.ui.awt.RelativePoint;
@@ -29,86 +30,80 @@ import static com.intellij.openapi.ui.popup.JBPopupFactory.getInstance;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 // todo since retrieving log data is fast now it should be reimplemented with Annotator or LineMarkerProvider
-public class LogWatcherExternalAnnotator extends ExternalAnnotator<List<ProblemOccurence>, List<ProblemOccurence>> {
+public class LogWatcherExternalAnnotator implements Annotator {
 
-  @Nullable
   @Override
-  public List<ProblemOccurence> collectInformation(@NotNull PsiFile file) {
-    return null;
-  }
+  public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+    if (!(element instanceof PsiClass)) return;
 
-  @Nullable
-  @Override
-  public List<ProblemOccurence> collectInformation(@NotNull PsiFile file, @NotNull final Editor editor, boolean hasErrors) {
-    final Map<Integer, ProblemOccurence> result = new HashMap<Integer, ProblemOccurence>();
-
-    final LogWatcherProjectComponent logWatcherProjectComponent = LogWatcherProjectComponent.getInstance(file.getProject());
+    Project project = element.getProject();
+    final LogWatcherProjectComponent logWatcherProjectComponent = LogWatcherProjectComponent.getInstance(project);
     if (logWatcherProjectComponent == null) {
-      return null;
+      return;
     }
 
-    PsiElementVisitor v = new JavaRecursiveElementWalkingVisitor() {
-      @Override
-      public void visitClass(PsiClass aClass) {
-        final String qualifiedName = aClass.getQualifiedName();
+    Document document = PsiDocumentManager.getInstance(project).getDocument(element.getContainingFile());
+    if (document == null) return;
 
-        final Collection<LogEntryDescriptor> logDescriptors = logWatcherProjectComponent.getDescriptorsForClass(qualifiedName);
-        for (LogEntryDescriptor logDescriptor : logDescriptors) {
-          PsiMethod[] candidates = aClass.findMethodsByName(logDescriptor.methodName, false);
-          for (PsiMethod candidate : candidates) {
-            int lineStartOffset = editor.getDocument().getLineStartOffset(logDescriptor.lineNumber - 1);
+    PsiClass aClass = (PsiClass)element;
+    final Map<Integer, ProblemOccurence> result = new HashMap<Integer, ProblemOccurence>();
 
-            PsiCodeBlock body = candidate.getBody();
-            if (body != null && body.getTextRange().contains(lineStartOffset)) {
-              putOrAppendUrl(result, logDescriptor.lineNumber - 1, logDescriptor.logUrl, TextRange.create(lineStartOffset, lineStartOffset));
-            }
-            else {
-              PsiIdentifier nameIdentifier = candidate.getNameIdentifier();
-              if (nameIdentifier != null) {
-                final TextRange nameIdentifierTextRange = nameIdentifier.getTextRange();
-                final int lineNumber = editor.getDocument().getLineNumber(nameIdentifierTextRange.getStartOffset());
-                putOrAppendUrl(result, lineNumber, logDescriptor.logUrl, nameIdentifierTextRange);
-              }
-            }
+    final String qualifiedName = aClass.getQualifiedName();
+
+    final Collection<LogEntryDescriptor> logDescriptors = logWatcherProjectComponent.getDescriptorsForClass(qualifiedName);
+    for (LogEntryDescriptor logDescriptor : logDescriptors) {
+      PsiMethod[] candidates = aClass.findMethodsByName(logDescriptor.methodName, false);
+      for (PsiMethod candidate : candidates) {
+        int lineStartOffset =
+          logDescriptor.lineNumber > document.getLineCount() ? -2 : document.getLineStartOffset(logDescriptor.lineNumber - 1);
+
+        PsiCodeBlock methodBody = candidate.getBody();
+        if (methodBody != null && methodBody.getTextRange().contains(lineStartOffset)) {
+          putOrAppendUrl(result, logDescriptor.lineNumber - 1, logDescriptor.logUrl, TextRange.create(lineStartOffset, lineStartOffset),
+                         null);
+        }
+        else {
+          PsiIdentifier nameIdentifier = candidate.getNameIdentifier();
+          if (nameIdentifier != null) {
+            final TextRange nameIdentifierTextRange = nameIdentifier.getTextRange();
+            final int lineNumber = document.getLineNumber(nameIdentifierTextRange.getStartOffset());
+            putOrAppendUrl(result, lineNumber, logDescriptor.logUrl, nameIdentifierTextRange, nameIdentifier);
           }
         }
       }
-    };
+    }
 
-    file.accept(v);
-    return ContainerUtil.newArrayList(result.values());
+    for (Map.Entry<Integer, ProblemOccurence> problem : result.entrySet()) {
+      ProblemOccurence value = problem.getValue();
+      PsiElement psiElement = value.getPsiElement();
+      Annotation a =
+        psiElement != null ? holder.createInfoAnnotation(psiElement, null) : holder.createInfoAnnotation(value.getTextRange(), null);
+      a.setGutterIconRenderer(new MyGutterIconRenderer(value.getUrls(), problem.getKey()));
+    }
   }
 
-  private static void putOrAppendUrl(Map<Integer, ProblemOccurence> result, int lineNumber, String url, TextRange textRange) {
+  private static void putOrAppendUrl(Map<Integer, ProblemOccurence> result,
+                                     int lineNumber,
+                                     String url,
+                                     TextRange textRange,
+                                     @Nullable PsiElement psiElement) {
     final ProblemOccurence existingOccurence = result.get(lineNumber);
     if (existingOccurence != null) {
       existingOccurence.getUrls().add(url);
     }
     else {
-      result.put(lineNumber, new ProblemOccurence(textRange, ContainerUtil.newArrayList(url)));
-    }
-  }
-
-  @Nullable
-  @Override
-  public List<ProblemOccurence> doAnnotate(List<ProblemOccurence> url) {
-    return url;
-  }
-
-  @Override
-  public void apply(@NotNull PsiFile file, final List<ProblemOccurence> problems, @NotNull final AnnotationHolder holder) {
-    for (ProblemOccurence problem : problems) {
-      Annotation a = holder.createInfoAnnotation(problem.getTextRange(), null);
-      a.setGutterIconRenderer(new MyGutterIconRenderer(problem.getUrls()));
+      result.put(lineNumber, new ProblemOccurence(psiElement, textRange, ContainerUtil.newArrayList(url)));
     }
   }
 
   final static class MyGutterIconRenderer extends GutterIconRenderer {
 
     private final List<String> myUrls;
+    private final Integer myKey;
 
-    public MyGutterIconRenderer(List<String> urls) {
+    public MyGutterIconRenderer(List<String> urls, Integer key) {
       myUrls = urls;
+      myKey = key;
     }
 
     @NotNull
@@ -132,8 +127,7 @@ public class LogWatcherExternalAnnotator extends ExternalAnnotator<List<ProblemO
           }
           if (e.getInputEvent() instanceof MouseEvent) {
             MouseEvent me = (MouseEvent)e.getInputEvent();
-            getInstance().createActionGroupPopup(null, g, e.getDataContext(), NUMBERING, true, null, 10)
-              .show(new RelativePoint(me));
+            getInstance().createActionGroupPopup(null, g, e.getDataContext(), NUMBERING, true, null, 10).show(new RelativePoint(me));
           }
 
         }
@@ -147,14 +141,14 @@ public class LogWatcherExternalAnnotator extends ExternalAnnotator<List<ProblemO
 
       MyGutterIconRenderer that = (MyGutterIconRenderer)o;
 
-      if (!myUrls.equals(that.myUrls)) return false;
+      if (!myUrls.equals(that.myUrls) || !myKey.equals(that.myKey)) return false;
 
       return true;
     }
 
     @Override
     public int hashCode() {
-      return myUrls.hashCode();
+      return myUrls.hashCode() + 31 * myKey.hashCode();
     }
   }
 
