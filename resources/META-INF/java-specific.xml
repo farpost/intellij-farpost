@@ -1,6 +1,7 @@
 <idea-plugin version="2">
 
   <extensions defaultExtensionNs="com.intellij">
-    <annotator language="JAVA" implementationClass="com.farpost.intellij.logwatcher.LogWatcherExternalAnnotator"/>
+    <annotator language="JAVA" implementationClass="com.farpost.intellij.logwatcher.LogWatcherExternalAnnotator" order="first"/>
+    <!--<codeInsight.lineMarkerProvider language="" implementationClass="com.farpost.intellij.logwatcher.LogWatcherLineMarkerProvider"/>-->
   </extensions>
 </idea-plugin>
