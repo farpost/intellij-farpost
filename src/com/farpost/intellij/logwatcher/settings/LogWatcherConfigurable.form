@@ -40,7 +40,8 @@
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Update rate (min):"/>
+          <labelFor value="f6948"/>
+          <text value="Update &amp;rate (min):"/>
         </properties>
       </component>
     </children>
