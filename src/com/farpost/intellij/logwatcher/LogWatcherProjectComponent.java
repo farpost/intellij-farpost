@@ -4,6 +4,7 @@ import com.farpost.intellij.logwatcher.client.LogEntryDescriptor;
 import com.farpost.intellij.logwatcher.client.LogWatcherClient;
 import com.farpost.intellij.logwatcher.settings.LogWatcherSettings;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Alarm;
@@ -66,7 +67,9 @@ public class LogWatcherProjectComponent extends AbstractProjectComponent {
           myData.putValue(logEntryDescriptor.classFqn, logEntryDescriptor);
         }
       });
-      DaemonCodeAnalyzer.getInstance(myProject).restart();
+      if (!ApplicationManager.getApplication().isUnitTestMode()) {
+        DaemonCodeAnalyzer.getInstance(myProject).restart();
+      }
       scheduleUpdate();
     }
   }

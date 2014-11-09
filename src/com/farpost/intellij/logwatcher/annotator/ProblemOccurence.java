@@ -21,4 +21,24 @@ public final class ProblemOccurence {
   public List<String> getUrls() {
     return urls;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof ProblemOccurence)) return false;
+
+    ProblemOccurence that = (ProblemOccurence)o;
+
+    if (!myTextRange.equals(that.myTextRange)) return false;
+    if (!urls.equals(that.urls)) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = myTextRange.hashCode();
+    result = 31 * result + urls.hashCode();
+    return result;
+  }
 }

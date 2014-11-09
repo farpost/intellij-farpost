@@ -1,5 +1,6 @@
 package com.farpost.intellij.logwatcher.settings;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
@@ -27,6 +28,9 @@ public class LogWatcherSettings implements PersistentStateComponent<LogWatcherSe
   }
 
   public long getUpdateRateMillis() {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      return 0;
+    }
     return myUpdateRateMillis;
   }
 

@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.event.MouseEvent;
-import java.util.List;
+import java.util.Collection;
 
 import static com.farpost.intellij.Icons.LogWatcher;
 import static com.intellij.openapi.ui.popup.JBPopupFactory.ActionSelectionAid.NUMBERING;
@@ -22,10 +22,10 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public class LogWatcherGutterRenderer extends GutterIconRenderer {
 
-  private final List<String> myUrls;
+  private final ProblemOccurence myProblemOccurence;
 
-  public LogWatcherGutterRenderer(List<String> urls) {
-    myUrls = urls;
+  public LogWatcherGutterRenderer(ProblemOccurence problemOccurence) {
+    myProblemOccurence = problemOccurence;
   }
 
   @NotNull
@@ -37,8 +37,9 @@ public class LogWatcherGutterRenderer extends GutterIconRenderer {
   @Nullable
   @Override
   public AnAction getClickAction() {
-    if (myUrls.size() == 1) {
-      final String url = getFirstItem(myUrls);
+    final Collection<String> urls = myProblemOccurence.getUrls();
+    if (urls.size() == 1) {
+      final String url = getFirstItem(urls);
       assert url != null;
       return new LogWatcherShowStacktraceAction("TODO: add title", url, "TODO: should be part of url");
     }
@@ -46,7 +47,7 @@ public class LogWatcherGutterRenderer extends GutterIconRenderer {
       @Override
       public void actionPerformed(AnActionEvent e) {
         DefaultActionGroup g = new DefaultActionGroup();
-        for (String url : myUrls) {
+        for (String url : urls) {
           g.add(new LogWatcherShowStacktraceAction("TODO: add title", url, "TODO: should be part of url"));
         }
         if (e.getInputEvent() instanceof MouseEvent) {
@@ -70,14 +71,18 @@ public class LogWatcherGutterRenderer extends GutterIconRenderer {
 
     LogWatcherGutterRenderer that = (LogWatcherGutterRenderer)o;
 
-    if (!myUrls.equals(that.myUrls)) return false;
+    if (!myProblemOccurence.equals(that.myProblemOccurence)) return false;
 
     return true;
   }
 
+  public ProblemOccurence getProblemOccurence() {
+    return myProblemOccurence;
+  }
+
   @Override
   public int hashCode() {
-    return myUrls.hashCode();
+    return myProblemOccurence.hashCode();
   }
 
   private static class LogWatcherShowStacktraceAction extends AnAction {

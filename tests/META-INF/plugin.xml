@@ -1,0 +1,13 @@
+<idea-plugin version="2">
+  <name>FarPost Tests</name>
+  <id>com.farpost.intellij.tests</id>
+
+  <depends>com.farpost.intellij</depends>
+  <depends>com.intellij.modules.xml</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceInterface="com.farpost.intellij.logwatcher.client.LogWatcherClient"
+                        serviceImplementation="com.farpost.intellij.logwatcher.LogWatcherClientStub"
+                        overrides="true"/>
+  </extensions>
+</idea-plugin>

@@ -93,7 +93,7 @@ public class LogWatcherExternalAnnotator extends ExternalAnnotator<List<ProblemO
   public void apply(@NotNull PsiFile file, final List<ProblemOccurence> problems, @NotNull final AnnotationHolder holder) {
     for (ProblemOccurence problem : problems) {
       Annotation a = holder.createInfoAnnotation(problem.getTextRange(), null);
-      a.setGutterIconRenderer(new LogWatcherGutterRenderer(problem.getUrls()));
+      a.setGutterIconRenderer(new LogWatcherGutterRenderer(problem));
     }
   }
 
