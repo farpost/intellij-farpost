@@ -1,4 +1,4 @@
-package com.farpost.intellij.logwatcher;
+package com.farpost.intellij.logwatcher.annotator;
 
 import com.intellij.openapi.util.TextRange;
 

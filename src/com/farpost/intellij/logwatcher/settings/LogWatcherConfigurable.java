@@ -34,7 +34,7 @@ public class LogWatcherConfigurable implements SearchableConfigurable {
   @Override
   public boolean isModified() {
     return !mySettings.getUrl().equals(myHostField.getText()) ||
-           TimeUnit.MILLISECONDS.toMinutes(mySettings.getUpdateRateMillis()) != myUpdateRateSpinner.getValue();
+           !myUpdateRateSpinner.getValue().equals(TimeUnit.MILLISECONDS.toMinutes(mySettings.getUpdateRateMillis()));
   }
 
   @Override

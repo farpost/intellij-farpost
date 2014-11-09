@@ -10,7 +10,7 @@
   <change-notes><![CDATA[
     ]]>
   </change-notes>
-  
+
   <idea-version since-build="135"/>
 
   <depends>com.intellij.modules.lang</depends>
@@ -23,7 +23,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <errorHandler implementation="com.farpost.intellij.ErrorReporter"/>
   </extensions>
-  
+
   <!-- LogWatcher -->
   <project-components>
     <component>
@@ -31,9 +31,12 @@
     </component>
   </project-components>
   <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceInterface="com.farpost.intellij.logwatcher.client.LogWatcherClient"
+                        serviceImplementation="com.farpost.intellij.logwatcher.client.LogWatcherRemoteJsonClient"/>
+
     <projectService serviceImplementation="com.farpost.intellij.logwatcher.settings.LogWatcherSettings"/>
+    <projectService serviceImplementation="com.farpost.intellij.logwatcher.toolwindow.LogWatcherToolWindow"/>
+
     <projectConfigurable instance="com.farpost.intellij.logwatcher.settings.LogWatcherConfigurable"/>
-    <toolWindow id="LogWatcher" icon="/com/farpost/intellij/icons/toolWindowLogWatcher.png" canCloseContents="true"
-                factoryClass="com.farpost.intellij.logwatcher.LogWatcherToolWindowFactory" anchor="bottom"/>
   </extensions>
 </idea-plugin>

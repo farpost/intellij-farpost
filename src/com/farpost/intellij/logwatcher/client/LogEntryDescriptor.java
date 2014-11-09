@@ -1,4 +1,4 @@
-package com.farpost.intellij.logwatcher;
+package com.farpost.intellij.logwatcher.client;
 
 public class LogEntryDescriptor {
   public final String classFqn;
